@@ -1,5 +1,5 @@
 from django.db import models
 
 class RandomJson(models.Model):
-    storedJSON = JSONField()
-    deletionTime = DateTimeField()
+    storedJSON = models.JSONField()
+    deletionTime = models.DateTimeField()
