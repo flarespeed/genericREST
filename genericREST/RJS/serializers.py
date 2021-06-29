@@ -15,6 +15,17 @@ class ImageSerializer(serializers.HyperlinkedModelSerializer):
         fields = ['url', 'imageUrl', 'descriptors']
         extra_kwargs = {'descriptors': {'required': False}}
 
+    def create(self, validated_data):
+        descriptors_data = validated_data.pop('descriptors')
+        image = Image.objects.create(**validated_data)
+        descriptors_existing = LinkedDescriptor.objects.all()
+        for descriptor_data in descriptors_data:
+            if descriptors_existing.filter(name=descriptor_data.name).exists():
+                LinkedDescriptor.objects.create(**descriptor_data)
+        return image
+
+
+
 class DescriptorSerializer(serializers.HyperlinkedModelSerializer):
     images = ImageSerializer(many=True, read_only=True)
 

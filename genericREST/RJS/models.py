@@ -5,7 +5,7 @@ class RandomJson(models.Model):
     deletionTime = models.DateTimeField()
 
 class LinkedDescriptor(models.Model):
-    name = models.CharField(max_length=100)
+    name = models.CharField(max_length=100, primary_key=True)
 
     class Meta:
         ordering = ['name']
