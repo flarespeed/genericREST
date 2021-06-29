@@ -2,26 +2,26 @@ from django.contrib.auth.models import User, Group
 from RJS.models import Image, LinkedDescriptor
 from rest_framework import serializers
 
-class ImageSerializer(serializers.HyperlinkedModelSerializer):
-    descriptors = serializers.HyperlinkedRelatedField(
-        many = True,
-        queryset = LinkedDescriptor.objects.all(),
-        read_only = False,
-        view_name = 'descriptor-detail'
-    )
-    class Meta:
-        model = Image
-        fields = ['url', 'imageUrl', 'descriptors']
-
-class DescriptorSerializer(serializers.HyperlinkedModelSerializer):
-    images = serializers.HyperlinkedRelatedField(
-        many = True,
-        read_only = True,
-        view_name = 'image-detail'
-    )
+class NonRecursiveDescriptorSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = LinkedDescriptor
         fields = ['url', 'name', 'images']
+        extra_kwargs = {'images': {'required': False}}
+
+class ImageSerializer(serializers.HyperlinkedModelSerializer):
+    descriptors = NonRecursiveDescriptorSerializer(many=True, read_only=True)
+    class Meta:
+        model = Image
+        fields = ['url', 'imageUrl', 'descriptors']
+        extra_kwargs = {'descriptors': {'required': False}}
+
+class DescriptorSerializer(serializers.HyperlinkedModelSerializer):
+    images = ImageSerializer(many=True, read_only=True)
+
+    class Meta:
+        model = LinkedDescriptor
+        fields = ['url', 'name', 'images']
+        extra_kwargs = {'images': {'required': False}}
 
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
 #     class Meta:
