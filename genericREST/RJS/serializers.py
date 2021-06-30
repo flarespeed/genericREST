@@ -24,6 +24,14 @@ class ImageSerializer(serializers.HyperlinkedModelSerializer):
                 LinkedDescriptor.objects.create(**descriptor_data)
         return image
 
+    def update(self, instance, validated_data):
+        instance.imageUrl = validated_data.get('imageUrl', instance.imageUrl)
+        descriptors_data = validated_data.pop('descriptors')
+        descriptors_existing = LinkedDescriptor.objects.all()
+        for descriptor_data in descriptors_data:
+            if descriptors_existing.filter(name=descriptor_data.name).exists():
+                LinkedDescriptor.objects.create(**descriptor_data)
+        instance.descriptors = validated_data.get(descriptors_data, instance.descriptors)
 
 
 class DescriptorSerializer(serializers.HyperlinkedModelSerializer):
