@@ -5,11 +5,10 @@ from rest_framework import serializers
 class NonRecursiveDescriptorSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = LinkedDescriptor
-        fields = ['url', 'name', 'images']
-        extra_kwargs = {'images': {'required': False}}
+        fields = ['url', 'name']
 
 class ImageSerializer(serializers.HyperlinkedModelSerializer):
-    descriptors = NonRecursiveDescriptorSerializer(many=True, read_only=True)
+    descriptors = NonRecursiveDescriptorSerializer(many=True, read_only=False)
     class Meta:
         model = Image
         fields = ['url', 'imageUrl', 'descriptors']
@@ -18,20 +17,21 @@ class ImageSerializer(serializers.HyperlinkedModelSerializer):
     def create(self, validated_data):
         descriptors_data = validated_data.pop('descriptors')
         image = Image.objects.create(**validated_data)
-        descriptors_existing = LinkedDescriptor.objects.all()
-        for descriptor_data in descriptors_data:
-            if descriptors_existing.filter(name=descriptor_data.name).exists():
-                LinkedDescriptor.objects.create(**descriptor_data)
+        image.descriptors.set(descriptors_data)
+        # descriptors_existing = LinkedDescriptor.objects.all()
+        # for descriptor_data in descriptors_data:
+        #     if descriptors_existing.filter(name=descriptor_data.name).exists():
+        #         LinkedDescriptor.objects.create(**descriptor_data)
         return image
 
     def update(self, instance, validated_data):
-        instance.imageUrl = validated_data.get('imageUrl', instance.imageUrl)
         descriptors_data = validated_data.pop('descriptors')
-        descriptors_existing = LinkedDescriptor.objects.all()
-        for descriptor_data in descriptors_data:
-            if descriptors_existing.filter(name=descriptor_data.name).exists():
-                LinkedDescriptor.objects.create(**descriptor_data)
-        instance.descriptors = validated_data.get(descriptors_data, instance.descriptors)
+        instance.imageUrl = validated_data.get('imageUrl', instance.imageUrl)
+        image.descriptors.set(descriptors_data)
+        # descriptors_existing = LinkedDescriptor.objects.all()
+        # for descriptor_data in descriptors_data:
+        #     if descriptors_existing.filter(name=descriptor_data.name).exists():
+        #         LinkedDescriptor.objects.create(**descriptor_data)
 
 
 class DescriptorSerializer(serializers.HyperlinkedModelSerializer):
@@ -41,6 +41,10 @@ class DescriptorSerializer(serializers.HyperlinkedModelSerializer):
         model = LinkedDescriptor
         fields = ['url', 'name', 'images']
         extra_kwargs = {'images': {'required': False}}
+
+
+
+
 
 # class UserSerializer(serializers.HyperlinkedModelSerializer):
 #     class Meta:
